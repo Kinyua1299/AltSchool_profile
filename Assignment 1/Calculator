@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strict Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background: #1f1f2e;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    .calculator {
+      background: #2e2e3e;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+      margin-bottom: 10px;
+    }
+    .display {
+      width: 100%;
+      height: 50px;
+      background: #2f3360;
+      border: 2px solid magenta;
+      color: white;
+      font-size: 24px;
+      padding: 10px;
+      text-align: right;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-template-rows: repeat(4, 60px);
+      gap: 15px;
+      justify-content: center;
+    }
+    button {
+      border: none;
+      border-radius: 50%;
+      font-size: 18px;
+      background-color: #3c3c4e;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 60px;
+      height: 60px;
+    }
+    button:hover {
+      background-color: #4c4c5e;
+    }
+    .operator {
+      background-color: orange;
+      color: white;
+    }
+    .operator:hover {
+      background-color: darkorange;
+    }
+    .equal {
+      background-color: #bcbcbc;
+      color: black;
+      border-radius: 12px;
+    }
+    .clear, .back {
+      background-color: #505060;
+    }
+    .clear:hover, .back:hover {
+      background-color: #606070;
+    }
+    .history-toggle {
+      font-size: 22px;
+      color: #ffcc00;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 10px;
+    }
+    .history-toggle:hover {
+      color: #ffff66;
+    }
+    .history {
+      display: none;
+      width: 320px;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #1f1f2e;
+      border: 1px solid #444;
+      border-radius: 10px;
+      padding: 15px;
+      color: white;
+      font-size: 15px;
+    }
+    .history.active {
+      display: block;
+    }
+    .history h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      color: #ffcc00;
+      border-bottom: 1px solid #ffcc00;
+      padding-bottom: 5px;
+    }
+    .history-entry {
+      padding: 6px 10px;
+      background-color: #2e2e3e;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      border-left: 4px solid #ffcc00;
+      font-family: monospace;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <input type="text" id="display" class="display" disabled />
+    <div class="buttons">
+      <button onclick="appendDisplay('1')">1</button>
+      <button onclick="appendDisplay('2')">2</button>
+      <button onclick="appendDisplay('3')">3</button>
+      <button class="operator" onclick="appendDisplay('×')">×</button>
+      <button class="operator" onclick="appendDisplay('÷')">÷</button>
+
+      <button onclick="appendDisplay('4')">4</button>
+      <button onclick="appendDisplay('5')">5</button>
+      <button onclick="appendDisplay('6')">6</button>
+      <button class="operator" onclick="appendDisplay('+')">+</button>
+      <button class="operator" onclick="appendDisplay('-')">-</button>
+
+      <button onclick="appendDisplay('7')">7</button>
+      <button onclick="appendDisplay('8')">8</button>
+      <button onclick="appendDisplay('9')">9</button>
+      <button class="operator" onclick="percent()">%</button>
+      <button class="operator" onclick="appendDisplay('^')">^</button>
+
+      <button onclick="appendDisplay('.')">.</button>
+      <button onclick="appendDisplay('0')">0</button>
+      <button class="back" onclick="backspace()">&#9003;</button>
+      <button class="clear" onclick="clearDisplay()">C</button>
+      <button class="equal" onclick="calculate()">=</button>
+    </div>
+    <button class="history-toggle" onclick="toggleHistory()" title="Show/Hide History">&#8635;</button>
+  </div>
+
+  <div class="history" id="history">
+    <h3>History</h3>
+    <div id="history-list"></div>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    const historyList = document.getElementById('history-list');
+    const historyPanel = document.getElementById('history');
+
+    function appendDisplay(symbol) {
+      display.value += symbol;
+    }
+
+    function clearDisplay() {
+      display.value = '';
+    }
+
+    function backspace() {
+      display.value = display.value.slice(0, -1);
+    }
+
+    function percent() {
+      if (display.value) {
+        try {
+          display.value = String(eval(transform(display.value) + "/100"));
+        } catch {
+          display.value = 'Error';
+        }
+      }
+    }
+
+    function transform(expr) {
+      return expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/\^/g, '**');
+    }
+
+    function calculate() {
+      try {
+        const expression = display.value;
+        const result = eval(transform(expression));
+        display.value = result;
+        addToHistory(expression, result);
+      } catch {
+        display.value = 'Error';
+      }
+    }
+
+    function addToHistory(expr, result) {
+      const entry = document.createElement('div');
+      entry.className = 'history-entry';
+      entry.textContent = `${expr} = ${result}`;
+      historyList.prepend(entry);
+    }
+
+    function toggleHistory() {
+      historyPanel.classList.toggle('active');
+    }
+
+    document.addEventListener('keydown', function(e) {
+      const allowed = '0123456789+-*/.^';
+      if (allowed.includes(e.key)) {
+        appendDisplay(e.key);
+      } else if (e.key === 'Enter') {
+        calculate();
+      } else if (e.key === 'Backspace') {
+        backspace();
+      } else if (e.key.toLowerCase() === 'c') {
+        clearDisplay();
+      } else if (e.key === '%') {
+        percent();
+      }
+    });
+  </script>
+</body>
+</html>
